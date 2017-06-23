@@ -186,7 +186,7 @@ _Many of the attacks that take place today are like this_
 
 # 2.3 Convenience and Security
 
-**Good technologies strive to increase security at only a slight inconvenience.**
+**Good technologies strive to increase security at only a slight inconvenience to the user.**
 
 Sometimes inversely proportional relationship
 - More secure can mean less convenient, and vice versa
