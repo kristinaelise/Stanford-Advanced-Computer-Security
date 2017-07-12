@@ -192,3 +192,127 @@ Sometimes inversely proportional relationship
 - More secure can mean less convenient, and vice versa
 - If too inconvenient then users try to find workarounds (ex. writing down passwords)
 
+# 2.4 Simple Web Server (SWS)
+
+- Small web server; 100 lines of Java -- really is built _just_ to do its job
+
+## 2.4.1 Hypertext Transfer Protocol (HTTP)
+
+- Communications protocol to connect clients and servers
+- Web started off as a series of linked documents (hypertext); more involved services built on top of this
+- Allows client to connect to server and get a document
+- `GET /` basically says "give me access to the homepage" 
+- Server returns a response code and the text version
+- Oversimplified example, obviously, but this is the jist of it
+
+## 2.4.2 SWS: main
+
+- main program gets run when you run the webserver
+- creates a new webserver object, and runs it 
+- outside of the main program, when SimpleWebServer object gets created, it runs the initialization and opens the server-side socket
+  - opens a ports saying: "web client, you can connect to this port; I'm ready to accept requests from clients"
+  - infinite loop waiting for a connection
+  - when a connection comes in, please give me access to a socket I can use to connect with a client
+  - get the client request and process it
+  - to process the request, `processRequest` function; takes a socket as input and says "give me the first line of the request sent by the client"
+  - breaks request up to two parts: command, path name
+  - command : `get` and path name: `/`
+  - SimpleWebServer only understands `GET`. Looks at the command and serves file given by the path name
+    - if anything else other than GET is passed as a command, returns a `501`
+- `serveFile`
+  - if the first character is a `/`, means the file retrieved is everything that comes after the slash
+  - if the path name only has a `/`, then serve `index.html` 
+  - server will use a file reader object from Java library
+  - constructs file object reading one character at a time
+  - if the file DNE on disk, returns appropriate 401 response
+  - if it _does_ exist, web server will read one character from file to disk and serving to client and continue this on a loop --> reads each character into buffer (`StringBuffer`), and then when done, writes out contents of the buffer
+
+- vulnerable to SO many threats - especially Denial of Service
+
+
+# 2.5 Security in Software Requirements
+
+- Attackers will often try to generate internal errors first; so rubust error handling should be part of the design
+- Share those requirements with the Quality Assurance team _and_ the developers; QA folks write the tests while developers write the code and so the tests are written based on requirements rather than the code that's being developed
+- This way, QA helps test for security as well as functionality
+- If you don't handle internal errors well, will lead to vulnerabilities
+
+## 2.5.1 Specifying Error Handling Requirements
+
+### What goes wrong in our example?
+- vulnerabilities are often due to bad error handling
+- attacker places a certain request to a server and it causes it to shut down, making it inaccessible to other users
+  - ex. sending a carriage return as the first message of a GET; the SWS example parses into tokens but won't be able to get the first
+  - web server will crash with a `null pointer exception`
+
+*Lesson:* When you're taking input from a client or a user, you can't trust the input. If you don't handle errors correctly it can result in security problems.
+
+### Fixing it
+- instead of just accessing the tokens passed, put the tokenization into a `try/catch` block
+
+## 2.5.3 Handling Internal Errors Securely
+
+- to attack an application, attackers can attempt to send odd inputs into the program that dev didn't expect => *Fault Injection*
+- if the program shuts down or prints unexpected output, it tells the attacker that the program is going down a path that could result in a vulnerability
+
+## 2.5.4 Including Validation and Fraud Checks
+
+- Mod 10 Checksum: summing through all digits in credit card, by the time you get to last digit you should be able to compute the last digit from the previous digits
+- write down what the security requirements are along with the threat modelling (ex. application should be able to handle malformed input; should be able to handle fraud)
+
+# 2.6 Security by Obscurity
+
+- assuming that the hacker doesn't know how the program works, and using that to your advantage
+
+## 2.6.1 Flaws in the Approach
+
+- should assume that an attacker can RE a program
+- should assume that the attacker can know the algorithm (to an extent)
+
+*Fuzzing*: sending application all kinds of info into a program to see the full control path of a program
+
+### Secret Keys
+*Kerckhoff's doctrine*: assume the attacker knows everything about the algorithm, and put your security of your system in the confidence of the key
+- so long as the attacker doesn't know the key, but may have the complete details on the algorithm, that's okay
+
+## 2.6.2 SWS Obscurity
+- don't assume security of web server is dependent on secrecy of the code or server: seasoned REs can determine exploitations through looking at bytecode
+
+## 2.6.3 Things to Avoid
+
+1. Don't "invent" your own encryption algorithm!
+- you could miss something, or choice of key that would make alg insecure
+
+2. Don't embed keys in software !! (_Duh_)
+- source code could leak; binary could leak
+- yeah you can change the key, but still not ideal
+
+3. Reusing successful code is better - it's probably been thoroughly tested
+
+# 2.7 Open vs. Closed Source
+- one isn't more secure than the other
+- you're making assumptions if you think that making your code OS makes it more secure
+- if it's CS, you'll need diverse security code reviews in order to really have it secure
+*Security is orthogonal; it's distinct from any business decisions you make about whether keeping your code OS or CS*
+
+# 2.8 A Game of Economics
+
+All systems are inherently insecure: the question is _how_ insecure?
+"How much would an attacker need to spend in order to break the system?"
+
+```
+if (cost to break system > reward) {
+ secure 
+}
+else {
+ !secure
+}
+```
+
+# 2.9 "Good Enough" Security
+
+*Alpha:* You don't need to worry about perfect security -- just basic security framework
+- make sure you have enough so you don't have to bolt security on later and end up with a turtle shell architecture
+- put in enough effort that you have a solid foundation so you're not stuck with shitty legacy security (ex. Windows98)
+
+
