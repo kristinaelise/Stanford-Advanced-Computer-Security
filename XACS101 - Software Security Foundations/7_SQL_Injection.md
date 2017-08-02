@@ -94,4 +94,59 @@ month = 0; DROP TABLE creditcards;
 
 ## 8.2.4 Second-Order SQL Injection
 
-at 10:27
+**Second-Order SQL Injection Attack**: data stored in database used to conduct SQL injection later
+- ex. a user's username and password are escaped before being added to database, but not when updating an existing profile
+
+```
+admin' --
+```
+- `--` means ignore the rest of the statement
+- quote terminates the string; if `admin` is a real username, their password wil be reset
+
+**tldr;** all parameters are dangerous even if they've been previously escaped
+
+## 8.2.5 Prepared Statements & Bind Variables
+
+**Bind variables**: placeholders guaranteed to be data
+
+**Prepared Statements**: allow creation of static queries with bind variables
+
+- essentially put in placeholders wherever there exists something that you should always consider data
+- ex. `userid=?` where the `?` is then replaced with an integer for the current user ID
+
+### Why aren't stored procedures a solution?
+- suppose a stored procedure exists called `change_password`
+- purpose is to serve as a shorthand for a bunch of other SQL statements; the structure of the statement can still be affected in the same way
+- so you still need to use bind variables
+
+- be careful about where the placeholders should be
+
+## 8.2.6 Mitigating the Impact of SQL Injection Attacks
+- most attackers poke and prod and make guesses
+- a lot use blind sql injection as well -- basically a method of reverse engineering the db schema
+  - pose a lot of queries: ex. are there any tables that start with the character A?
+  - they'll have programs that will auto-place web requests and interrogate the database using some kind of binary search
+- don't display detailed error messages
+- make sure to configure the app, server and components to be in production mode rather than dev mode
+  - ex. "invalid month" rather than giving away schema information
+
+### Limiting Privileges
+- employ principle of least privilege
+- don't give users more privileges to the database than they need
+  - may need to do inserts/updates, but probably don't need to drop tables
+  - configure the database account so that schema changes can't be made like that
+  - mitigates damage of sequel attacks
+
+### Encrypt Sensitive Data
+- second line of defence
+- without a key, the attacker doesn't really have much
+- **don't** store the key in the DB since the attacker can just use a SQL injection attack to get it
+- **some db allow auto-encrpytion but they still return plaintext queries!!!**
+
+### Hardening DB Server and Host O/S
+- ideally keys should be stored in tamper-resistent hardware
+- some SQL databases allow users to open sockets -- you shouldn't allow _all_ features by default
+
+ 
+
+
